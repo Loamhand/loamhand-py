@@ -1,0 +1,69 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "loamhand"
+dynamic = ["version"]
+description = "Async Python client for Loamhand's sensor ingest API"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+authors = [{ name = "Loamhand LLC" }]
+keywords = ["loamhand", "garden", "sensors", "home-assistant"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: AsyncIO",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+dependencies = ["aiohttp>=3.9"]
+
+[project.optional-dependencies]
+test = [
+    # aioresponses 0.7.9 cannot build a ClientResponse on aiohttp 3.14 yet (tests only).
+    "aiohttp>=3.9,<3.14",
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "aioresponses>=0.7.6",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "build>=1.2",
+]
+
+[project.urls]
+Homepage = "https://loamhand.com"
+Source = "https://github.com/Loamhand/loamhand-py"
+Changelog = "https://github.com/Loamhand/loamhand-py/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+path = "src/loamhand/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/loamhand"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/loamhand", "tests", "README.md", "CHANGELOG.md", "LICENSE", "pyproject.toml"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "ASYNC"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["src", "tests"]

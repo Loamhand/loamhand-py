@@ -1,0 +1,51 @@
+name: Release
+
+# Runs when a tag like v0.1.0 is pushed. Publishes to PyPI by trusted publishing:
+# no token is stored anywhere. The PyPI project `loamhand` trusts this exact
+# repository, workflow file name (release.yml) and environment (pypi).
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: The tag must match the package version
+        run: |
+          version=$(python -c "import re,pathlib; print(re.search(r'__version__ = \"([^\"]+)\"', pathlib.Path('src/loamhand/_version.py').read_text()).group(1))")
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package version ${version}" >&2
+            exit 1
+          fi
+      - run: pip install -e ".[test]"
+      - run: ruff check .
+      - run: mypy
+      - run: pytest -q
+      - run: python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
